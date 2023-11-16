@@ -1,10 +1,12 @@
-import os, requests
+import os, requests, jwt
 from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from json.decoder import JSONDecodeError
 from django.http import JsonResponse
 from rest_framework import status
 from .models import *
+from .serializers import *
+from datetime import datetime, timedelta
 
 
 BASE_URI = "http://localhost:8000/"
@@ -45,13 +47,23 @@ class GoogleCallbackView(APIView):
             )
         email_req_json = email_req.json()
         email = email_req_json.get("email")
+        user_id = email_req_json.get("user_id")
 
         # Signin or Signup
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            user_id = email_req_json.get("user_id")
             user = User.signup_manager.create_google_user(email=email, user_id=user_id)
 
         # Generate JWT token
-        return JsonResponse({"status": True})
+        secret = os.environ.get("SECRET_KEY")
+        data = {
+            "user_id": user_id,
+            "email": email,
+            "expire_at": (datetime.now() + timedelta(days=7)).strftime(
+                "%Y%m%dT%H:%M:%S"
+            ),
+        }
+        jwt_token = jwt.encode(data, secret, algorithm="HS256")
+        user_data = UserSerializer(user).data
+        return JsonResponse({"access_token": jwt_token, "user": user_data})

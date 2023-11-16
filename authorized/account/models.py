@@ -34,6 +34,7 @@ class User(AbstractUser, TimeStamp):
         max_length=10, choices=Provider.choices, default=Provider.COMMON
     )
     password = models.CharField(max_length=128, null=True, blank=True)
+    user_id = models.CharField(max_length=128, null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
