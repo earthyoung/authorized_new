@@ -1,16 +1,22 @@
 import os, requests, jwt
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from rest_framework.views import APIView
 from json.decoder import JSONDecodeError
 from django.http import JsonResponse
 from rest_framework import status
 from .models import *
 from .serializers import *
+from .dto import *
 from datetime import datetime, timedelta
 
 
 BASE_URI = "http://localhost:8000/"
 GOOGLE_CALLBACK_URI = BASE_URI + "account/google/callback/"
+
+
+class HealthView(APIView):
+    def get(self, request):
+        return JsonResponse({"status": True})
 
 
 # Create your views here.
@@ -57,13 +63,12 @@ class GoogleCallbackView(APIView):
 
         # Generate JWT token
         secret = os.environ.get("SECRET_KEY")
-        data = {
-            "user_id": user_id,
-            "email": email,
-            "expire_at": (datetime.now() + timedelta(days=7)).strftime(
-                "%Y%m%dT%H:%M:%S"
-            ),
-        }
+        data = UserJwtDto(
+            id=user.id,
+            user_id=user_id,
+            email=email,
+            expire_at=(datetime.now() + timedelta(days=7)).strftime("%Y%m%dT%H:%M:%S"),
+        )
         jwt_token = jwt.encode(data, secret, algorithm="HS256")
         user_data = UserSerializer(user).data
         return JsonResponse({"access_token": jwt_token, "user": user_data})
