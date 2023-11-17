@@ -67,7 +67,7 @@ class GoogleCallbackView(APIView):
             id=user.id,
             user_id=user_id,
             email=email,
-            expire_at=(datetime.now() + timedelta(days=7)).strftime("%Y%m%dT%H:%M:%S"),
+            expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
         )
         jwt_token = jwt.encode(data, secret, algorithm="HS256")
         user_data = UserSerializer(user).data
