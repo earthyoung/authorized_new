@@ -4,10 +4,11 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UserSignupManager(models.Manager):
-    def create_google_user(self, email, user_id, photo_url=None):
+    def create_google_user(self, email, user_id, username, photo_url=None):
         user = User.objects.create(
             email=email,
             user_id=user_id,
+            username=username,
             provider=User.Provider.GOOGLE,
             photo_url=photo_url,
         )
