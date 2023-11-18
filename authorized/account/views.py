@@ -8,6 +8,7 @@ from .models import *
 from .serializers import *
 from .dto import *
 from datetime import datetime, timedelta
+from django.core.cache import cache
 
 
 BASE_URI = "http://localhost:8000/"
@@ -59,16 +60,33 @@ class GoogleCallbackView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            user = User.signup_manager.create_google_user(email=email, user_id=user_id)
+            username = f"{email}_{user_id}"
+            user = User.signup_manager.create_google_user(
+                email=email, user_id=user_id, username=username
+            )
 
         # Generate JWT token
         secret = os.environ.get("SECRET_KEY")
-        data = UserJwtDto(
+        access_token_data = UserJwtDto(
             id=user.id,
             user_id=user_id,
             email=email,
             expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
         )
-        jwt_token = jwt.encode(data, secret, algorithm="HS256")
+        refresh_token_data = UserJwtDto(
+            id=user.id,
+            user_id=user_id,
+            email=email,
+            expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
+        )
+        access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
+        refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")
+        cache.set(user.id, refresh_token, timeout=None)
         user_data = UserSerializer(user).data
-        return JsonResponse({"access_token": jwt_token, "user": user_data})
+        return JsonResponse(
+            {
+                "access_token": access_token,
+                "user": user_data,
+                "refresh_token": refresh_token,
+            }
+        )
