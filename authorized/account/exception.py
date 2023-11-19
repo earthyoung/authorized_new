@@ -11,3 +11,8 @@ class JwtInvalidException(Exception):
 class JwtOutdatedException(Exception):
     def __init__(self, message="JWT 유효기간이 만료되었습니다."):
         self.message = "JWT 유효기간이 만료되었습니다."
+
+
+class KakaoNotExistAccessTokenException(Exception):
+    def __init__(self, message="kakao access token이 주어지지 않았습니다."):
+        self.message = "kakao access token이 주어지지 않았습니다."

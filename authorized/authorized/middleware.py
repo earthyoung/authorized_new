@@ -9,7 +9,10 @@ class JwtAuthenticateMiddleware:
 
     def __call__(self, request):
         # 로그인 요청
-        if request.method == "GET" and request.path.startswith("/account/google/"):
+        if request.method == "GET" and (
+            request.path.startswith("/account/google/")
+            or request.path.startswith("/account/kakao/")
+        ):
             pass
         # JWT 토큰 없이 접근 가능한 요청
         elif request.method == "GET" and request.path in []:
