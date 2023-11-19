@@ -9,10 +9,12 @@ from .serializers import *
 from .dto import *
 from datetime import datetime, timedelta
 from django.core.cache import cache
+from .exception import *
 
 
 BASE_URI = "http://localhost:8000/"
 GOOGLE_CALLBACK_URI = BASE_URI + "account/google/callback/"
+KAKAO_CALLBACK_URI = BASE_URI + "account/kakao/callback/"
 
 
 class HealthView(APIView):
@@ -67,17 +69,91 @@ class GoogleCallbackView(APIView):
 
         # Generate JWT token
         secret = os.environ.get("SECRET_KEY")
-        access_token_data = UserJwtDto(
+        access_token_data = GoogleJwtDto(
             id=user.id,
             user_id=user_id,
             email=email,
             expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
+            auth_type="google",
         )
-        refresh_token_data = UserJwtDto(
+        refresh_token_data = GoogleJwtDto(
             id=user.id,
             user_id=user_id,
             email=email,
             expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
+            auth_type="google",
+        )
+        access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
+        refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")
+        cache.set(user.id, refresh_token, timeout=None)
+        user_data = UserSerializer(user).data
+        return JsonResponse(
+            {
+                "access_token": access_token,
+                "user": user_data,
+                "refresh_token": refresh_token,
+            }
+        )
+
+
+class KakaoLoginView(APIView):
+    def get(self, request):
+        client_id = os.environ.get("KAKAO_REST_API_KEY")
+        redirect_uri = KAKAO_CALLBACK_URI
+        url = f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
+        return redirect(url)
+
+
+class KakaoCallbackView(APIView):
+    def get(self, request):
+        if request.GET.get("error"):
+            return JsonResponse({"status": "error"})
+        code = request.GET.get("code")
+        access_token_request_uri = "https://kauth.kakao.com/oauth/token"
+        header = {"Content-type": "application/x-www-form-urlencoded"}
+        client_id = os.environ.get("KAKAO_REST_API_KEY")
+        body = {
+            "grant_type": "authorization_code",
+            "client_id": client_id,
+            "redirect_uri": KAKAO_CALLBACK_URI,
+            "code": code,
+        }
+        response = requests.post(
+            url=access_token_request_uri, headers=header, data=body
+        )
+        response_data = response.json()
+        access_token = response_data.get("access_token")
+        if not access_token:
+            raise KakaoNotExistAccessTokenException()
+        user_info_request_uri = "https://kapi.kakao.com/v2/user/me"
+        header = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-type": "application/x-www-form-urlencoded",
+        }
+        response = requests.get(url=user_info_request_uri, headers=header)
+        response_data = response.json()
+        user_id = response_data.get("id")
+
+        # Signin or Signup
+        try:
+            user = User.objects.get(username=user_id)
+        except User.DoesNotExist:
+            user = User.signup_manager.create_kakao_user(
+                user_id=user_id, username=user_id
+            )
+
+        secret = os.environ.get("SECRET_KEY")
+        access_token_data = KakaoJwtDto(
+            id=user.id,
+            user_id=user_id,
+            expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
+            auth_type="kakao",
+        )
+        refresh_token_data = KakaoJwtDto(
+            id=user.id,
+            user_id=user_id,
+            expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
+            auth_type="kakao",
         )
         access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
         refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")

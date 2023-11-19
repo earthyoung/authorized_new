@@ -14,6 +14,14 @@ class UserSignupManager(models.Manager):
         )
         return user
 
+    def create_kakao_user(self, user_id, username):
+        user = User.objects.create(
+            user_id=user_id,
+            username=username,
+            provider=User.Provider.KAKAO,
+        )
+        return user
+
 
 class TimeStamp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -28,6 +36,7 @@ class User(AbstractUser, TimeStamp):
     class Provider(models.TextChoices):
         GOOGLE = "GOOGLE", _("GOOGLE")
         COMMON = "COMMON", _("COMMON")
+        KAKAO = "KAKAO", _("KAKAO")
 
     email = models.CharField(max_length=255, unique=True)
     photo_url = models.CharField(max_length=255, null=True, blank=True)
