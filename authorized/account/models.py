@@ -22,6 +22,13 @@ class UserSignupManager(models.Manager):
         )
         return user
 
+    def get_by_natural_key(self, username):
+        try:
+            user = User.objects.get(username)
+        except (User.DoesNotExist, User.MultipleObjectsReturned):
+            return None
+        return user
+
 
 class TimeStamp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)

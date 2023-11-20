@@ -92,8 +92,6 @@ MIDDLEWARE = [
     # "account.middleware.JwtAuthenticateMiddleware",
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
 ROOT_URLCONF = "authorized.urls"
 
 TEMPLATES = [
