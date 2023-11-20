@@ -4,6 +4,8 @@ from datetime import datetime
 
 
 class JwtAuthenticateMiddleware:
+    secret = os.environ.get("SECRET_KEY")
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -18,14 +20,13 @@ class JwtAuthenticateMiddleware:
         elif request.method == "GET" and request.path in []:
             pass
         else:
-            secret = os.environ.get("SECRET_KEY")
             # validate JWT
             token = request.META.get("HTTP_AUTHORIZATION")
             if not token:
                 raise JwtNotExistException("JWT 토큰이 없습니다.")
 
             token = token[7:]  # 'Bearer' 제거
-            user_info = jwt.decode(token, secret, algorithms=["HS256"])
+            user_info = jwt.decode(token, self.secret, algorithms=["HS256"])
 
             # JWT 토큰 유효한지 확인
             try:

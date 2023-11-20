@@ -21,3 +21,8 @@ class KakaoNotExistAccessTokenException(Exception):
 class UserInvalidException(Exception):
     def __init__(self, message="id에 맞는 user가 존재하지 않습니다."):
         self.message = "id에 맞는 user가 존재하지 않습니다."
+
+
+class RefreshTokenInvalidException(Exception):
+    def __init__(self, message="유효한 refresh token이 아닙니다."):
+        self.message = "유효한 refresh token이 아닙니다."

@@ -193,3 +193,62 @@ class LogoutView(APIView):
             )
         cache.delete(key=user.id)
         return JsonResponse(status=status.HTTP_200_OK, data={})
+
+
+class TokenRefreshView(APIView):
+    secret = os.environ.get("SECRET_KEY")
+
+    def post(self, request):
+        token = request.META.get("HTTP_AUTHORIZATION")
+        if not token:
+            raise JwtNotExistException()
+        token = token[7:]
+        user_info = jwt.decode(token, self.secret, algorithms=["HS256"])
+        try:
+            id = user_info.get("id")
+            user_id = user_info.get("user_id")
+            expire_at = user_info.get("expire_at")
+            auth_type = user_info.get("auth_type")
+        except Exception:
+            raise JwtInvalidException()
+
+        try:
+            user = User.objects.get(pk=id)
+        except (User.DoesNotExist, User.MultipleObjectsReturned):
+            raise JwtInvalidException()
+
+        # 기간이 지났는지 확인
+        expire_at = datetime.strptime(expire_at, "%Y%m%dT%H:%M:%S")
+        if expire_at >= datetime.now():
+            return JsonResponse(
+                status=status.HTTP_400_BAD_REQUEST, data={"msg": "정상적인 접근입니다."}
+            )
+
+        refresh_token = request.data.get("refresh_token")
+        refresh_token_from_cache = cache.get(user.id)
+        if (not refresh_token_from_cache) or refresh_token_from_cache != refresh_token:
+            raise RefreshTokenInvalidException()
+
+        access_token_data = OAuthJwtDto(
+            id=user.id,
+            user_id=user_id,
+            expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
+            auth_type=auth_type,
+        )
+        refresh_token_data = OAuthJwtDto(
+            id=user.id,
+            user_id=user_id,
+            expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
+            auth_type=auth_type,
+        )
+        access_token = jwt.encode(access_token_data, self.secret, algorithm="HS256")
+        refresh_token = jwt.encode(refresh_token_data, self.secret, algorithm="HS256")
+        cache.set(user.id, refresh_token, timeout=None)
+        user_data = UserSerializer(user).data
+        return JsonResponse(
+            {
+                "access_token": access_token,
+                "user": user_data,
+                "refresh_token": refresh_token,
+            }
+        )
