@@ -29,8 +29,8 @@ class JwtAuthenticateMiddleware:
 
             # JWT 토큰 유효한지 확인
             try:
+                id = user_info.get("id")
                 user_id = user_info.get("user_id")
-                email = user_info.get("email")
                 expire_at = user_info.get("expire_at")
             except Exception:
                 raise JwtInvalidException("JWT 토큰이 유효하지 않습니다.")

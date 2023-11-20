@@ -17,12 +17,26 @@ GOOGLE_CALLBACK_URI = BASE_URI + "account/google/callback/"
 KAKAO_CALLBACK_URI = BASE_URI + "account/kakao/callback/"
 
 
+def get_user(request):
+    try:
+        user = request.user
+    except Exception:
+        pass
+    return user
+
+
 class HealthView(APIView):
     def get(self, request):
         return JsonResponse({"status": True})
 
 
-# Create your views here.
+class UserView(APIView):
+    def get(self, request):
+        user = get_user(request)
+        data = UserSerializer(user).data
+        return JsonResponse({"status": True, "user": data})
+
+
 class GoogleLoginView(APIView):
     def get(self, request):
         scope = "https://www.googleapis.com/auth/userinfo.email"
@@ -69,17 +83,15 @@ class GoogleCallbackView(APIView):
 
         # Generate JWT token
         secret = os.environ.get("SECRET_KEY")
-        access_token_data = GoogleJwtDto(
+        access_token_data = OAuthJwtDto(
             id=user.id,
             user_id=user_id,
-            email=email,
             expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
             auth_type="google",
         )
-        refresh_token_data = GoogleJwtDto(
+        refresh_token_data = OAuthJwtDto(
             id=user.id,
             user_id=user_id,
-            email=email,
             expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
             auth_type="google",
         )
@@ -143,13 +155,13 @@ class KakaoCallbackView(APIView):
             )
 
         secret = os.environ.get("SECRET_KEY")
-        access_token_data = KakaoJwtDto(
+        access_token_data = OAuthJwtDto(
             id=user.id,
             user_id=user_id,
             expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
             auth_type="kakao",
         )
-        refresh_token_data = KakaoJwtDto(
+        refresh_token_data = OAuthJwtDto(
             id=user.id,
             user_id=user_id,
             expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
@@ -166,3 +178,18 @@ class KakaoCallbackView(APIView):
                 "refresh_token": refresh_token,
             }
         )
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        user = get_user(request)
+        token = request.META.get("HTTP_AUTHORIZATION")
+        if not token:
+            return JsonResponse(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={
+                    "status": "error",
+                },
+            )
+        cache.delete(key=user.id)
+        return JsonResponse(status=status.HTTP_200_OK, data={})
