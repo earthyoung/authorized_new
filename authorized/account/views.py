@@ -10,6 +10,7 @@ from .dto import *
 from datetime import datetime, timedelta
 from django.core.cache import cache
 from .exception import *
+from rest_framework.throttling import UserRateThrottle
 
 
 BASE_URI = "http://localhost:8000/"
@@ -31,6 +32,8 @@ class HealthView(APIView):
 
 
 class UserView(APIView):
+    throttle_classes = [UserRateThrottle]
+
     def get(self, request):
         user = get_user(request)
         data = UserSerializer(user).data
