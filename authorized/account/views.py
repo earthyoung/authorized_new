@@ -26,6 +26,26 @@ def get_user(request):
     return user
 
 
+def get_access_token_and_refresh_token(id, user_id, oauth_provider):
+    secret = os.environ.get("SECRET_KEY")
+    access_token_data = OAuthJwtDto(
+        id=id,
+        user_id=user_id,
+        expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
+        auth_type=oauth_provider,
+    )
+    refresh_token_data = OAuthJwtDto(
+        id=id,
+        user_id=user_id,
+        expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
+        auth_type=oauth_provider,
+    )
+    access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
+    refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")
+    cache.set(id, refresh_token, timeout=None)
+    return access_token, refresh_token
+
+
 class HealthView(APIView):
     def get(self, request):
         return JsonResponse({"status": True})
@@ -85,22 +105,9 @@ class GoogleCallbackView(APIView):
             )
 
         # Generate JWT token
-        secret = os.environ.get("SECRET_KEY")
-        access_token_data = OAuthJwtDto(
-            id=user.id,
-            user_id=user_id,
-            expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
-            auth_type="google",
+        access_token, refresh_token = get_access_token_and_refresh_token(
+            user.id, user_id, "google"
         )
-        refresh_token_data = OAuthJwtDto(
-            id=user.id,
-            user_id=user_id,
-            expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
-            auth_type="google",
-        )
-        access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
-        refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")
-        cache.set(user.id, refresh_token, timeout=None)
         user_data = UserSerializer(user).data
         return JsonResponse(
             {
@@ -157,22 +164,9 @@ class KakaoCallbackView(APIView):
                 user_id=user_id, username=user_id
             )
 
-        secret = os.environ.get("SECRET_KEY")
-        access_token_data = OAuthJwtDto(
-            id=user.id,
-            user_id=user_id,
-            expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
-            auth_type="kakao",
+        access_token, refresh_token = get_access_token_and_refresh_token(
+            user.id, user_id, "kakao"
         )
-        refresh_token_data = OAuthJwtDto(
-            id=user.id,
-            user_id=user_id,
-            expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
-            auth_type="kakao",
-        )
-        access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
-        refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")
-        cache.set(user.id, refresh_token, timeout=None)
         user_data = UserSerializer(user).data
         return JsonResponse(
             {
@@ -232,21 +226,9 @@ class TokenRefreshView(APIView):
         if (not refresh_token_from_cache) or refresh_token_from_cache != refresh_token:
             raise RefreshTokenInvalidException()
 
-        access_token_data = OAuthJwtDto(
-            id=user.id,
-            user_id=user_id,
-            expire_at=(datetime.now() + timedelta(days=1)).strftime("%Y%m%dT%H:%M:%S"),
-            auth_type=auth_type,
+        access_token, refresh_token = get_access_token_and_refresh_token(
+            user.id, user_id, auth_type
         )
-        refresh_token_data = OAuthJwtDto(
-            id=user.id,
-            user_id=user_id,
-            expire_At=(datetime.now() + timedelta(days=30)).strftime("%Y%m%dT%H:%M:%S"),
-            auth_type=auth_type,
-        )
-        access_token = jwt.encode(access_token_data, self.secret, algorithm="HS256")
-        refresh_token = jwt.encode(refresh_token_data, self.secret, algorithm="HS256")
-        cache.set(user.id, refresh_token, timeout=None)
         user_data = UserSerializer(user).data
         return JsonResponse(
             {
