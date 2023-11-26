@@ -61,10 +61,12 @@ class UserView(APIView):
 
 
 class GoogleLoginView(APIView):
+    client_id = os.environ.get("GOOGLE_CLIENT_ID")
+    scope = "https://www.googleapis.com/auth/userinfo.email"
+    callback_uri = GOOGLE_CALLBACK_URI
+
     def get(self, request):
-        scope = "https://www.googleapis.com/auth/userinfo.email"
-        client_id = os.environ.get("GOOGLE_CLIENT_ID")
-        url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={client_id}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}"
+        url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={self.client_id}&response_type=code&redirect_uri={self.callback_uri}&scope={self.scope}"
         return redirect(url)
 
 
@@ -119,25 +121,28 @@ class GoogleCallbackView(APIView):
 
 
 class KakaoLoginView(APIView):
+    client_id = os.environ.get("KAKAO_REST_API_KEY")
+    redirect_uri = KAKAO_CALLBACK_URI
+
     def get(self, request):
-        client_id = os.environ.get("KAKAO_REST_API_KEY")
-        redirect_uri = KAKAO_CALLBACK_URI
-        url = f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
+        url = f"https://kauth.kakao.com/oauth/authorize?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type=code"
         return redirect(url)
 
 
 class KakaoCallbackView(APIView):
+    client_id = os.environ.get("KAKAO_REST_API_KEY")
+    callback_uri = KAKAO_CALLBACK_URI
+
     def get(self, request):
         if request.GET.get("error"):
             return JsonResponse({"status": "error"})
         code = request.GET.get("code")
         access_token_request_uri = "https://kauth.kakao.com/oauth/token"
         header = {"Content-type": "application/x-www-form-urlencoded"}
-        client_id = os.environ.get("KAKAO_REST_API_KEY")
         body = {
             "grant_type": "authorization_code",
-            "client_id": client_id,
-            "redirect_uri": KAKAO_CALLBACK_URI,
+            "client_id": self.client_id,
+            "redirect_uri": self.callback_uri,
             "code": code,
         }
         response = requests.post(
