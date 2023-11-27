@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from rest_framework.views import APIView
 from json.decoder import JSONDecodeError
 from django.http import JsonResponse
-from rest_framework import status
+from rest_framework import status, viewsets
 from .models import *
 from .serializers import *
 from .dto import *
@@ -51,10 +51,10 @@ class HealthView(APIView):
         return JsonResponse({"status": True})
 
 
-class UserView(APIView):
+class UserViewSet(viewsets.ModelViewSet):
     throttle_classes = [UserRateThrottle]
 
-    def get(self, request):
+    def retrieve(self, request):
         user = get_user(request)
         data = UserSerializer(user).data
         return JsonResponse({"status": True, "user": data})
