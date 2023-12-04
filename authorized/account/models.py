@@ -44,6 +44,7 @@ class User(AbstractUser, TimeStamp):
         GOOGLE = "GOOGLE", _("GOOGLE")
         COMMON = "COMMON", _("COMMON")
         KAKAO = "KAKAO", _("KAKAO")
+        INSTAGRAM = "INSTAGRAM", _("INSTAGRAM")
 
     email = models.CharField(max_length=255, unique=True)
     photo_url = models.CharField(max_length=255, null=True, blank=True)
