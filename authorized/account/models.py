@@ -30,6 +30,10 @@ class UserSignupManager(models.Manager):
         return user
 
 
+class GroupManager(models.Manager):
+    pass
+
+
 class TimeStamp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -57,3 +61,21 @@ class User(AbstractUser, TimeStamp):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
     signup_manager = UserSignupManager()
+
+
+class Group(TimeStamp):
+    class GroupType(models.TextChoices):
+        SINGLE = "SINGLE", _("SINGLE")
+        MULTIPLE = "MULTIPLE", _("MULTIPLE")
+
+    type = models.CharField(
+        max_length=20, choices=GroupType.choices, default=GroupType.SINGLE
+    )
+    name = models.CharField(max_length=50)
+    members = models.ManyToManyField(User, through="MemberShip")
+    manager = GroupManager()
+
+
+class MemberShip(TimeStamp):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
