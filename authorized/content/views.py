@@ -51,3 +51,8 @@ class GroupPostView(ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class PostDetailView(RetrieveAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
