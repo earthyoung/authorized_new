@@ -18,4 +18,4 @@ class MyContentView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def filter_queryset(self, queryset):
-        return super().filter_queryset(queryset)
+        return Post.manager.filter_user()
