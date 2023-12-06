@@ -23,3 +23,9 @@ class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ["name", "content"]
+
+
+class PostDestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ["id"]

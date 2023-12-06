@@ -1,6 +1,12 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveAPIView, ListAPIView, CreateAPIView
+from rest_framework.generics import (
+    RetrieveAPIView,
+    ListAPIView,
+    CreateAPIView,
+    UpdateAPIView,
+    DestroyAPIView,
+)
 from rest_framework.response import Response
 from .models import *
 from .serializers import *
@@ -60,4 +66,14 @@ class PostDetailView(RetrieveAPIView):
 
 class PostCreateView(CreateAPIView):
     serializer_class = PostCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class PostUpdateView(UpdateAPIView):
+    serializer_class = PostCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class PostDestroyView(DestroyAPIView):
+    serializer_class = PostDestroySerializer
     permission_classes = [IsAuthenticated]
