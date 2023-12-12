@@ -23,7 +23,7 @@ class CustomJwtAuthentication(SessionAuthentication):
         ):
             return None
         # JWT 토큰 없이 접근 가능한 요청
-        elif request.method == "GET" and request.path in []:
+        elif request.path in ["/account/convert/"]:
             return None
         else:
             token = request.META.get("HTTP_AUTHORIZATION")[7:]
