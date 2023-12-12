@@ -17,7 +17,7 @@ class JwtAuthenticateMiddleware:
         ):
             pass
         # JWT 토큰 없이 접근 가능한 요청
-        elif request.method == "GET" and request.path in []:
+        elif request.path in ["/account/convert", "/account/convert/"]:
             pass
         else:
             # validate JWT

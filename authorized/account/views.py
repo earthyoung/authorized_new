@@ -1,4 +1,4 @@
-import os, requests, jwt
+import os, requests, jwt, base64, json
 from django.shortcuts import redirect
 from rest_framework.views import APIView
 from json.decoder import JSONDecodeError
@@ -240,5 +240,25 @@ class TokenRefreshView(APIView):
                 "access_token": access_token,
                 "user": user_data,
                 "refresh_token": refresh_token,
+            }
+        )
+
+
+class TokenConvertView(APIView):
+    # secret = """\n-----BEGIN RSA PUBLIC KEY-----
+    # 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
+    # -----END RSA PUBLIC KEY-----\n"""
+    secret = "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"
+
+    def post(self, request):
+        data = json.loads(request.body)
+        token = data.get("token")
+        token_decoded = jwt.decode(token, key="secret", algorithms=["RS256"])
+        # token_decoded = base64.b64decode(token).decode("utf-8")
+        print("decoded", token_decoded)
+        return JsonResponse(
+            {
+                "access_token": "12312313123",
+                "refresh_token": "456456456",
             }
         )
