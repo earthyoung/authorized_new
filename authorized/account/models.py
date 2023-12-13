@@ -14,11 +14,13 @@ class UserSignupManager(models.Manager):
         )
         return user
 
-    def create_kakao_user(self, user_id, username):
+    def create_kakao_user(self, email, user_id, username, photo_url=None):
         user = User.objects.create(
+            email=email,
             user_id=user_id,
             username=username,
             provider=User.Provider.KAKAO,
+            photo_url=photo_url,
         )
         return user
 

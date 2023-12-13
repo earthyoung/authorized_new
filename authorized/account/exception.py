@@ -18,6 +18,11 @@ class KakaoNotExistAccessTokenException(Exception):
         self.message = "kakao access token이 주어지지 않았습니다."
 
 
+class KakaoAccessTokenInvalidException(Exception):
+    def __init__(self, message="kakao access token이 유효하지 않습니다."):
+        self.message = "kakao access token이 유효하지 않습니다."
+
+
 class UserInvalidException(Exception):
     def __init__(self, message="id에 맞는 user가 존재하지 않습니다."):
         self.message = "id에 맞는 user가 존재하지 않습니다."
