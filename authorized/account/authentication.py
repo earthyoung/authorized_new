@@ -16,7 +16,7 @@ class CustomJwtAuthentication(SessionAuthentication):
         except Exception:
             pass
 
-        if request.method == "GET" and (
+        if (
             request.path.startswith("/account/google/")
             or request.path.startswith("/account/kakao/")
             or request.path.startswith("/account/health")
