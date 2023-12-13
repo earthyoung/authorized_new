@@ -33,12 +33,12 @@ def generate_google_token(data):
     access_token_data = data
     refresh_token_data = data
     access_token_data["expire_at"] = datetime.strftime(
-        datetime.now() + timedelta(days=1), "%Y/%m/%d %H:%M:%S"
+        datetime.now() + timedelta(days=1), "%Y%m%dT%H:%M:%S"
     )
     refresh_token_data["expire_at"] = datetime.strftime(
-        datetime.now() + timedelta(weeks=1), "%Y/%m/%d %H:%M:%S"
+        datetime.now() + timedelta(weeks=1), "%Y%m%dT%H:%M:%S"
     )
-    secret = os.environ.get("GOOGLE_CLIENT_SECRET")
+    secret = os.environ.get("SECRET_KEY")
     access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
     refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")
     return access_token, refresh_token
@@ -70,8 +70,6 @@ class HealthView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    throttle_classes = [UserRateThrottle]
-
     def retrieve(self, request):
         user = get_user(request)
         data = UserSerializer(user).data
