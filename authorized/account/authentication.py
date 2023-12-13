@@ -34,8 +34,8 @@ class CustomJwtAuthentication(SessionAuthentication):
             # JWT 토큰 유효한지 확인
             try:
                 id = user_info.get("id")
-                user_id = user_info.get("user_id")
                 expire_at = user_info.get("expire_at")
+                email = user_info.get("email")
             except Exception:
                 raise JwtInvalidException()
 
