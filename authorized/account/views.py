@@ -11,6 +11,9 @@ from datetime import datetime, timedelta
 from django.core.cache import cache
 from .exception import *
 from rest_framework.throttling import UserRateThrottle
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from rest_framework.response import Response
 
 
 BASE_URI = "http://localhost:8000/"
@@ -58,66 +61,6 @@ class UserViewSet(viewsets.ModelViewSet):
         user = get_user(request)
         data = UserSerializer(user).data
         return JsonResponse({"status": True, "user": data})
-
-
-class GoogleLoginView(APIView):
-    client_id = os.environ.get("GOOGLE_CLIENT_ID")
-    scope = "https://www.googleapis.com/auth/userinfo.email"
-    callback_uri = GOOGLE_CALLBACK_URI
-
-    def get(self, request):
-        url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={self.client_id}&response_type=code&redirect_uri={self.callback_uri}&scope={self.scope}"
-        return redirect(url)
-
-
-class GoogleCallbackView(APIView):
-    def get(self, request):
-        client_id = os.environ.get("GOOGLE_CLIENT_ID")
-        client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
-        code = request.GET.get("code")
-        state = os.environ.get("STATE")
-        token_req = requests.post(
-            f"https://oauth2.googleapis.com/token?client_id={client_id}&client_secret={client_secret}&code={code}&grant_type=authorization_code&redirect_uri={GOOGLE_CALLBACK_URI}&state={state}"
-        )
-        token_req_json = token_req.json()
-        error = token_req_json.get("error")
-        if error is not None:
-            raise JSONDecodeError(error)
-        access_token = token_req_json.get("access_token")
-
-        email_req = requests.get(
-            f"https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={access_token}"
-        )
-        email_req_status = email_req.status_code
-        if email_req_status != 200:
-            return JsonResponse(
-                {"err_msg": "failed to get email"}, status=status.HTTP_400_BAD_REQUEST
-            )
-        email_req_json = email_req.json()
-        email = email_req_json.get("email")
-        user_id = email_req_json.get("user_id")
-
-        # Signin or Signup
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            username = f"{email}_{user_id}"
-            user = User.signup_manager.create_google_user(
-                email=email, user_id=user_id, username=username
-            )
-
-        # Generate JWT token
-        access_token, refresh_token = get_access_token_and_refresh_token(
-            user.id, user_id, "google"
-        )
-        user_data = UserSerializer(user).data
-        return JsonResponse(
-            {
-                "access_token": access_token,
-                "user": user_data,
-                "refresh_token": refresh_token,
-            }
-        )
 
 
 class KakaoLoginView(APIView):
@@ -244,18 +187,20 @@ class TokenRefreshView(APIView):
         )
 
 
-class TokenConvertView(APIView):
-    # secret = """\n-----BEGIN RSA PUBLIC KEY-----
-    # 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
-    # -----END RSA PUBLIC KEY-----\n"""
-    secret = "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"
+class GoogleLoginView(APIView):
+    client_id = os.environ.get("GOOGLE_CLIENT_ID")
 
     def post(self, request):
         data = json.loads(request.body)
         token = data.get("token")
-        token_decoded = jwt.decode(token, key="secret", algorithms=["RS256"])
-        # token_decoded = base64.b64decode(token).decode("utf-8")
-        print("decoded", token_decoded)
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                token, requests.Request(), self.client_id
+            )
+        except Exception as e:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={"status": False, "msg": e}
+            )
         return JsonResponse(
             {
                 "access_token": "12312313123",
