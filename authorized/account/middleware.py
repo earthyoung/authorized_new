@@ -20,7 +20,7 @@ class JwtAuthenticateMiddleware:
             pass
         else:
             # validate JWT
-            token = request.META.get("AUTHORIZATION")
+            token = request.META.get("HTTP_AUTHORIZATION")
             if not token:
                 raise JwtNotExistException("JWT 토큰이 없습니다.")
 

@@ -141,16 +141,15 @@ class KakaoCallbackView(APIView):
 class LogoutView(APIView):
     def post(self, request):
         user = get_user(request)
-        token = request.META.get("HTTP_AUTHORIZATION")
-        if not token:
+        if user.is_anonymous:
             return JsonResponse(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={
-                    "status": "error",
+                    "status": False,
                 },
             )
         cache.delete(key=user.id)
-        return JsonResponse(status=status.HTTP_200_OK, data={})
+        return JsonResponse(status=status.HTTP_200_OK, data={"status": True})
 
 
 class TokenRefreshView(APIView):
