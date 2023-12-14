@@ -10,4 +10,6 @@ urlpatterns = [
     path("new/", PostCreateView.as_view()),
     path("edit/", PostUpdateView.as_view()),
     path("delete/", PostDestroyView.as_view()),
+    path("friends/", FriendListView.as_view(), name="friends"),
+    path("consent/", AuthConsentView.as_view(), name="consent"),
 ]

@@ -20,15 +20,17 @@ class KakaoLoginView(APIView):
     verify_url = "https://kapi.kakao.com/v1/user/access_token_info"
     info_url = "https://kapi.kakao.com/v2/user/me"
 
-    def generate_token(self, data):
+    def generate_token(self, data, access_token, refresh_token):
         data["provider"] = "kakao"
         access_token_data = data
         refresh_token_data = data
+        access_token_data["access_token"] = access_token
+        refresh_token_data["refresh_token"] = refresh_token
         access_token_data["expire_at"] = datetime.strftime(
             datetime.now() + timedelta(days=1), "%Y%m%dT%H:%M:%S"
         )
         refresh_token_data["expire_at"] = datetime.strftime(
-            datetime.now() + timedelta(weeks=1), "%Y%m%dT%H:%M:%S"
+            datetime.now() + timedelta(days=30), "%Y%m%dT%H:%M:%S"
         )
         secret = os.environ.get("SECRET_KEY")
         access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
@@ -52,35 +54,30 @@ class KakaoLoginView(APIView):
             return None
 
     def post(self, request):
-        access_token = json.loads(request.body)["access_token"]
+        body = json.loads(request.body)
+        access_token = body["access_token"]
+        refresh_token = body["refresh_token"]
         try:
             verify_response = requests.get(
                 self.verify_url, headers={"Authorization": "Bearer " + access_token}
             )
             if verify_response.status_code != 200:
                 raise KakaoAccessTokenInvalidException()
-            data = {
-                "property_keys": [
-                    "kakao_account.profile",
-                    "kakao_account.email",
-                    "kakao_account.name",
-                ]
-            }
             info_response = requests.get(
                 self.info_url,
-                # data='property_keys=["kakao_account.email"]',
-                headers={
-                    "Authorization": "Bearer "
-                    + access_token
-                    # "Content-Type": "application/x-www-form-urlencoded",
-                },
+                headers={"Authorization": "Bearer " + access_token},
             )
             if info_response.status_code != 200:
                 raise KakaoAccessTokenInvalidException()
             info_data = info_response.json()
             user = self.create_or_signup_user(info_data)
             user_data = UserSerializer(user).data
-            access_token, refresh_token = self.generate_token(user_data)
+            new_access_token, new_refresh_token = self.generate_token(
+                user_data, access_token, refresh_token
+            )
+            user_data.pop("access_token")
+            user_data.pop("refresh_token")
+            user_data.pop("expire_at")
         except Exception as e:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
@@ -90,7 +87,7 @@ class KakaoLoginView(APIView):
             status=status.HTTP_200_OK,
             data={
                 "user": user_data,
-                "access_token": access_token,
-                "refresh_token": refresh_token,
+                "access_token": new_access_token,
+                "refresh_token": new_refresh_token,
             },
         )
