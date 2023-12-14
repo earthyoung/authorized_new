@@ -12,7 +12,7 @@ from django.core.cache import cache
 from .exception import *
 from rest_framework.throttling import UserRateThrottle
 from google.oauth2 import id_token
-
+from google.auth.transport import requests
 from rest_framework.response import Response
 
 
@@ -59,137 +59,6 @@ class UserViewSet(viewsets.ModelViewSet):
         user = get_user(request)
         data = UserSerializer(user).data
         return JsonResponse({"status": True, "user": data})
-
-
-class GoogleLoginView(APIView):
-    client_id = os.environ.get("GOOGLE_CLIENT_ID")
-    from google.auth.transport import requests
-
-    def generate_token(self, data):
-        data["provider"] = "google"
-        access_token_data = data
-        refresh_token_data = data
-        access_token_data["expire_at"] = datetime.strftime(
-            datetime.now() + timedelta(days=1), "%Y%m%dT%H:%M:%S"
-        )
-        refresh_token_data["expire_at"] = datetime.strftime(
-            datetime.now() + timedelta(weeks=1), "%Y%m%dT%H:%M:%S"
-        )
-        secret = os.environ.get("SECRET_KEY")
-        access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
-        refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")
-        return access_token, refresh_token
-
-    def create_or_signup_user(self, data):
-        email = data.get("email")
-        try:
-            user = User.objects.get(email=email)
-            return user
-        except User.DoesNotExist:
-            sub = data.get("sub")
-            picture = data.get("picture")
-            name = data.get("name")
-            user = User.signup_manager.create_google_user(email, sub, name, picture)
-            return user
-        except Exception:
-            return None
-
-    def post(self, request):
-        data = json.loads(request.body)
-        token = data.get("token")
-        user_data = None
-        try:
-            idinfo = id_token.verify_oauth2_token(
-                token, requests.Request(), self.client_id
-            )
-            user = self.create_or_signup_user(idinfo)
-            user_data = UserSerializer(user).data
-            access_token, refresh_token = self.generate_token(user_data)
-        except Exception as e:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={"status": False, "msg": str(e)},
-            )
-        return Response(
-            status=status.HTTP_200_OK,
-            data={
-                "user": user_data,
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-            },
-        )
-
-
-class KakaoLoginView(APIView):
-    client_id = os.environ.get("KAKAO_REST_API_KEY")
-    verify_url = "https://kapi.kakao.com/v1/user/access_token_info"
-    info_url = "https://kapi.kakao.com/v2/user/me?property_keys=kakao_account.profile,kakao_account.email,kakao_account.name"
-
-    def generate_token(self, data):
-        data["provider"] = "kakao"
-        access_token_data = data
-        refresh_token_data = data
-        access_token_data["expire_at"] = datetime.strftime(
-            datetime.now() + timedelta(days=1), "%Y%m%dT%H:%M:%S"
-        )
-        refresh_token_data["expire_at"] = datetime.strftime(
-            datetime.now() + timedelta(weeks=1), "%Y%m%dT%H:%M:%S"
-        )
-        secret = os.environ.get("SECRET_KEY")
-        access_token = jwt.encode(access_token_data, secret, algorithm="HS256")
-        refresh_token = jwt.encode(refresh_token_data, secret, algorithm="HS256")
-        return access_token, refresh_token
-
-    def create_or_signup_user(self, data):
-        email = data.get("email")
-        try:
-            user = User.objects.get(email=email)
-            return user
-        except User.DoesNotExist:
-            user_id = data.get("id")
-            name = data.get("name")
-            profile_image_url = data.get("profile").get("profile_image_url")
-            user = User.signup_manager.create_kakao_user(
-                email, user_id, name, profile_image_url
-            )
-            return user
-        except Exception:
-            return None
-
-    def post(self, request):
-        access_token = json.loads(request.body)["access_token"]
-        try:
-            verify_response = requests.get(
-                self.verify_url, headers={"Authorization": "Bearer " + access_token}
-            )
-            if verify_response.status_code != 200:
-                raise KakaoAccessTokenInvalidException()
-            info_response = requests.get(
-                self.verify_url,
-                headers={
-                    "Authorization": "Bearer " + access_token,
-                    "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-                },
-            )
-            if info_response.status_code != 200:
-                raise KakaoAccessTokenInvalidException()
-            info_data = info_response.json()
-            user = self.create_or_signup_user(info_data)
-            user_data = UserSerializer(user).data
-            access_token, refresh_token = self.generate_token(user_data)
-        except Exception as e:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={"status": False, "msg": str(e)},
-            )
-        return Response(
-            status=status.HTTP_200_OK,
-            data={
-                "user": user_data,
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-            },
-        )
 
 
 class LogoutView(APIView):
