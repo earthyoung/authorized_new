@@ -41,7 +41,7 @@ class CustomJwtAuthentication(SessionAuthentication):
 
             try:
                 user = User.objects.get(pk=id)
-            except (User.DoesNotExist, User.MultipleObjectsReturned):
+            except User.MultipleObjectsReturned:
                 raise UserInvalidException()
 
             # 기간이 지났는지 확인
