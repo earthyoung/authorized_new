@@ -9,6 +9,7 @@ from rest_framework.generics import (
     DestroyAPIView,
 )
 from rest_framework.response import Response
+from rest_framework import status
 from .models import *
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -96,21 +97,27 @@ class FriendListView(APIView):
     friend_url = "https://kapi.kakao.com/v1/api/talk/friends"
 
     def get(self, request):
-        access_token = request.META.get("HTTP_AUTHORIZATION")[7:]
-        access_token_oauth = jwt.decode(
-            access_token, self.secret, algorithms="HS256"
-        ).get("access_token")
-        friend_response = requests.get(
-            self.friend_url, headers={"Authorization": "Bearer " + access_token_oauth}
-        )
-        if friend_response.status_code != 200:
-            if friend_response.json().get("code") in [-5, -402]:
-                consent_response = requests.post(self.consent_url)
-                friend_response = requests.get(
-                    self.friend_url,
-                    headers={"Authorization": "Bearer " + access_token_oauth},
-                )
-            else:
-                raise Exception()
-
+        try:
+            access_token = request.META.get("HTTP_AUTHORIZATION")[7:]
+            access_token_oauth = jwt.decode(
+                access_token, self.secret, algorithms="HS256"
+            ).get("access_token")
+            friend_response = requests.get(
+                self.friend_url,
+                headers={"Authorization": "Bearer " + access_token_oauth},
+            )
+            if friend_response.status_code != 200:
+                if friend_response.json().get("code") in [-5, -402]:
+                    consent_response = requests.post(self.consent_url)
+                    friend_response = requests.get(
+                        self.friend_url,
+                        headers={"Authorization": "Bearer " + access_token_oauth},
+                    )
+                else:
+                    raise Exception()
+        except Exception as e:
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={"status": False, "msg": str(e)},
+            )
         return Response(data={"status": "ok"})
