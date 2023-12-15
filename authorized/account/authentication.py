@@ -43,6 +43,8 @@ class CustomJwtAuthentication(SessionAuthentication):
                 user = User.objects.get(pk=id)
             except User.MultipleObjectsReturned:
                 raise UserInvalidException()
+            except User.DoesNotExist:
+                pass
 
             # 기간이 지났는지 확인
             expire_at = datetime.strptime(expire_at, "%Y%m%dT%H:%M:%S")
