@@ -14,6 +14,9 @@ from .serializers import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
+BASE_URI = os.environ.get("HOST")
+
+
 # Create your views here.
 class AllPostView(ListAPIView):
     queryset = Post.manager.all()
@@ -88,8 +91,7 @@ class AuthConsentView(APIView):
 class FriendListView(APIView):
     secret = os.environ.get("SECRET_KEY")
     rest_api_key = os.environ.get("KAKAO_REST_API_KEY")
-    redirect_url = "http://localhost:8000/content/consent/"
-    # redirect_url = "http://localhost:3000/"
+    redirect_url = BASE_URI + "/content/consent/"
     consent_url = f"https://kauth.kakao.com/oauth/authorize?client_id={rest_api_key}&redirect_uri={redirect_url}&response_type=code&scope=friends"
     friend_url = "https://kapi.kakao.com/v1/api/talk/friends"
 
@@ -102,7 +104,7 @@ class FriendListView(APIView):
             self.friend_url, headers={"Authorization": "Bearer " + access_token_oauth}
         )
         if friend_response.status_code != 200:
-            if friend_response.json().get("code") == -402:
+            if friend_response.json().get("code") in [-5, -402]:
                 consent_response = requests.post(self.consent_url)
                 friend_response = requests.get(
                     self.friend_url,

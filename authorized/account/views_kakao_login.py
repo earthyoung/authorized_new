@@ -54,10 +54,10 @@ class KakaoLoginView(APIView):
             return None
 
     def post(self, request):
-        body = json.loads(request.body)
-        access_token = body["access_token"]
-        refresh_token = body["refresh_token"]
         try:
+            body = json.loads(request.body)
+            access_token = body["access_token"]
+            refresh_token = body["refresh_token"]
             verify_response = requests.get(
                 self.verify_url, headers={"Authorization": "Bearer " + access_token}
             )
