@@ -83,14 +83,6 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
 }
 
-# CORS
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://172.22.144.1:3000",
-]
-
 CORS_ALLOW_ALL_ORIGINS = (
     True  # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
 )
@@ -105,7 +97,6 @@ CORS_ALLOW_METHODS = (
     "POST",
     "PUT",
 )
-CORS_ORIGIN_WHITELIST = ("http://localhost:3000",)
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -144,10 +135,6 @@ WSGI_APPLICATION = "authorized.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.db.backends.sqlite3",
-    #     "NAME": BASE_DIR / "db.sqlite3",
-    # }
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": os.environ.get("DB_NAME"),
@@ -161,7 +148,7 @@ DATABASES = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": os.environ.get("REDIS_HOST"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },

@@ -16,7 +16,7 @@ from google.auth.transport import requests
 from rest_framework.response import Response
 
 
-BASE_URI = "http://localhost:8000/"
+BASE_URI = os.environ.get("HOST")
 GOOGLE_CALLBACK_URI = BASE_URI + "account/google/callback/"
 KAKAO_CALLBACK_URI = BASE_URI + "account/kakao/callback/"
 
@@ -56,22 +56,34 @@ class HealthView(APIView):
 
 class UserViewSet(viewsets.ModelViewSet):
     def retrieve(self, request):
-        user = get_user(request)
-        data = UserSerializer(user).data
+        try:
+            user = get_user(request)
+            data = UserSerializer(user).data
+        except Exception as e:
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={"status": False, "msg": str(e)},
+            )
         return JsonResponse({"status": True, "user": data})
 
 
 class LogoutView(APIView):
     def post(self, request):
-        user = get_user(request)
-        if user.is_anonymous:
+        try:
+            user = get_user(request)
+            if user.is_anonymous:
+                return JsonResponse(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={
+                        "status": False,
+                    },
+                )
+            cache.delete(key=user.id)
+        except Exception as e:
             return JsonResponse(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={
-                    "status": False,
-                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={"status": False, "msg": str(e)},
             )
-        cache.delete(key=user.id)
         return JsonResponse(status=status.HTTP_200_OK, data={"status": True})
 
 
