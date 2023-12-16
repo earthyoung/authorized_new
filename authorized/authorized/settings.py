@@ -151,6 +151,7 @@ CACHES = {
         "LOCATION": os.environ.get("REDIS_HOST"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": os.environ.get("REDIS_PASSWORD"),
         },
     }
 }
