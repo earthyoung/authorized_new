@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "account",
     "content",
+    "log",
     "corsheaders",
 ]
 
@@ -151,7 +152,6 @@ CACHES = {
         "LOCATION": os.environ.get("REDIS_HOST"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": os.environ.get("REDIS_PASSWORD"),
         },
     }
 }
