@@ -27,3 +27,13 @@ class Post(TimeStamp):
 class PostImage(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     url = models.CharField(max_length=255)
+
+
+class Comment(TimeStamp):
+    content = models.TextField(null=True, blank=True)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
+
+
+class CommentImage(models.Model):
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    url = models.CharField(max_length=255)
