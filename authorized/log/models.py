@@ -21,3 +21,11 @@ class Chat(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     content = models.TextField(null=True, blank=True)
+
+
+class EmailLog(models.Model):
+    sender = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="sender"
+    )
+    receiver = models.ManyToManyField(User, related_name="receiver")
+    created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
