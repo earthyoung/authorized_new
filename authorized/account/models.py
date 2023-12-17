@@ -4,6 +4,14 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UserSignupManager(models.Manager):
+    def create(self, email, user_id=None, username=None, photo_url=None):
+        if len(email.split("@")) != 2:
+            return None
+        if email.split("@")[1] == "gmail.com":
+            return self.create_google_user(email, user_id, username, photo_url)
+        else:
+            return self.create_kakao_user(email, user_id, username, photo_url)
+
     def create_google_user(self, email, user_id, username, photo_url=None):
         user = User.objects.create(
             email=email,
