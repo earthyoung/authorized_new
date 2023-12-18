@@ -26,9 +26,10 @@ class CustomJwtAuthentication(SessionAuthentication):
         elif request.path in ["/account/convert/"]:
             return None
         else:
-            token = request.META.get("HTTP_AUTHORIZATION")[7:]
+            token = request.META.get("HTTP_AUTHORIZATION")
             if not token:
                 raise JwtNotExistException()
+            token = token[7:]
 
             user_info = jwt.decode(token, self.secret, algorithms=["HS256"])
             # JWT 토큰 유효한지 확인
