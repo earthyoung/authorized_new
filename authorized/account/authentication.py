@@ -7,6 +7,8 @@ from .models import User
 
 class CustomJwtAuthentication(SessionAuthentication):
     secret = os.environ.get("SECRET_KEY")
+    path_starts_with = ["/account/google/", "/account/kakao/", "/account/health/"]
+    path_exact = ["/account/convert/"]
 
     def authenticate(self, request):
         try:
@@ -16,14 +18,11 @@ class CustomJwtAuthentication(SessionAuthentication):
         except Exception:
             pass
 
-        if (
-            request.path.startswith("/account/google/")
-            or request.path.startswith("/account/kakao/")
-            or request.path.startswith("/account/health")
-        ):
-            return None
+        for path in self.path_starts_with:
+            if request.path.starswith(path):
+                return None
         # JWT 토큰 없이 접근 가능한 요청
-        elif request.path in ["/account/convert/"]:
+        if request.path in self.path_exact:
             return None
         else:
             token = request.META.get("HTTP_AUTHORIZATION")
