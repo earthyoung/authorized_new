@@ -4,6 +4,8 @@ from datetime import datetime
 
 
 class JwtAuthenticateMiddleware:
+    path_starts_with = ["/account/google/", "/account/kakao/"]
+    path_exact = ["/account/convert/"]
     secret = os.environ.get("SECRET_KEY")
 
     def __init__(self, get_response):
@@ -11,12 +13,11 @@ class JwtAuthenticateMiddleware:
 
     def __call__(self, request):
         # 로그인 요청
-        if request.path.startswith("/account/google/") or request.path.startswith(
-            "/account/kakao/"
-        ):
-            pass
+        for path in self.path_starts_with:
+            if request.path.startswith(path):
+                pass
         # JWT 토큰 없이 접근 가능한 요청
-        elif request.path in ["/account/convert/"]:
+        if request.path in self.path_exact:
             pass
         else:
             # validate JWT
