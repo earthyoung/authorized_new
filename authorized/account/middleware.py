@@ -41,5 +41,4 @@ class JwtAuthenticateMiddleware:
             if expire_at < datetime.now():
                 raise JwtOutdatedException("JWT 유효기간이 만료되었습니다.")
 
-        response = self.get_response(request)
-        return response
+        return self.get_response(request)
