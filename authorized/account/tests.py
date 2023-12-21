@@ -27,14 +27,10 @@ class PermissionTest(TestCase):
         def call_user():
             return self.client.get("/account/user/")
 
-        # response = call_user()
         self.assertRaises(JwtNotExistException, call_user)
-        # self.assertEqual(True, True)
 
     def test_logout_api_without_jwt(self):
         def call_api():
             return self.client.post("/account/logout/")
 
-        # response = call_api()
         self.assertRaises(JwtNotExistException, call_api)
-        # self.assertEqual(True, True)
