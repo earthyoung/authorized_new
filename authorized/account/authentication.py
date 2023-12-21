@@ -19,7 +19,7 @@ class CustomJwtAuthentication(SessionAuthentication):
             pass
 
         for path in self.path_starts_with:
-            if request.path.starswith(path):
+            if request.path.startswith(path):
                 return None
         # JWT 토큰 없이 접근 가능한 요청
         if request.path in self.path_exact:

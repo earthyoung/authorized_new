@@ -25,16 +25,12 @@ class PermissionTest(TestCase):
 
     def test_user_api_without_jwt(self):
         def call_user():
-            self.client.get("/account/user/")
+            return self.client.get("/account/user/")
 
-        response = call_user()
-        print("user_response", response)
         self.assertRaises(JwtNotExistException, call_user)
 
     def test_logout_api_without_jwt(self):
         def call_api():
-            self.client.post("/account/logout/")
+            return self.client.post("/account/logout/")
 
-        response = call_api()
-        print("logout_response", response)
         self.assertRaises(JwtNotExistException, call_api)
