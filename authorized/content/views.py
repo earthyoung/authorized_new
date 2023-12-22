@@ -1,7 +1,7 @@
 import jwt, os, requests
 from django.shortcuts import render, redirect
 from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -18,12 +18,12 @@ BASE_URI = os.environ.get("HOST")
 
 
 class PostViewSet(ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.manager.all()
 
 
-class MyPostViewSet(RetrieveModelMixin, GenericAPIView):
-    queryset = Post.objects.all()
+class MyPostViewSet(RetrieveModelMixin, GenericViewSet):
+    queryset = Post.manager.all()
 
 
-class GroupPostViewSet(ListModelMixin, GenericAPIView):
-    queryset = Post.objects.all()
+class GroupPostViewSet(ListModelMixin, GenericViewSet):
+    queryset = Post.manager.all()

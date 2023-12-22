@@ -3,12 +3,14 @@ from django.shortcuts import redirect
 from rest_framework.views import APIView
 from json.decoder import JSONDecodeError
 from django.http import JsonResponse
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from .models import *
 from .serializers import *
+from .permissions import IsGroupUser
 from .dto import *
 from datetime import datetime, timedelta
 from django.core.cache import cache
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .exception import *
 from rest_framework.throttling import UserRateThrottle
 from google.oauth2 import id_token
@@ -50,11 +52,16 @@ def get_access_token_and_refresh_token(id, user_id, oauth_provider):
 
 
 class HealthView(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         return JsonResponse({"status": True})
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+
     def retrieve(self, request):
         try:
             user = get_user(request)
@@ -68,16 +75,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         try:
             user = get_user(request)
-            if user.is_anonymous:
-                return JsonResponse(
-                    status=status.HTTP_400_BAD_REQUEST,
-                    data={
-                        "status": False,
-                    },
-                )
             cache.delete(key=user.id)
         except Exception as e:
             return JsonResponse(
@@ -88,6 +90,7 @@ class LogoutView(APIView):
 
 
 class TokenRefreshView(APIView):
+    permission_classes = [AllowAny]
     secret = os.environ.get("SECRET_KEY")
 
     def post(self, request):
