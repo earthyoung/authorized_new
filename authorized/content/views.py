@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import *
 from .serializers import *
+from account.permissions import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
@@ -19,11 +20,14 @@ BASE_URI = os.environ.get("HOST")
 
 class PostViewSet(ModelViewSet):
     queryset = Post.manager.all()
+    permission_classes = [AllowAny, IsWriter]
 
 
 class MyPostViewSet(RetrieveModelMixin, GenericViewSet):
     queryset = Post.manager.all()
+    permission_classes = [IsAuthenticated]
 
 
 class GroupPostViewSet(ListModelMixin, GenericViewSet):
     queryset = Post.manager.all()
+    permission_classes = [IsAuthenticated, IsGroupUser]
