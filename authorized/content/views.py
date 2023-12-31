@@ -22,6 +22,14 @@ class PostViewSet(ModelViewSet):
     queryset = Post.manager.all()
     permission_classes = [AllowAny, IsWriter]
 
+    def check_permissions(self, request):
+        if request.method != "GET":
+            self.permission_denied(request)
+
+    def check_object_permissions(self, request, obj):
+        if request.method != "POST":
+            self.permission_denied(request)
+
 
 class MyPostViewSet(RetrieveModelMixin, GenericViewSet):
     queryset = Post.manager.all()
@@ -30,4 +38,4 @@ class MyPostViewSet(RetrieveModelMixin, GenericViewSet):
 
 class GroupPostViewSet(ListModelMixin, GenericViewSet):
     queryset = Post.manager.all()
-    permission_classes = [IsAuthenticated, IsGroupUser]
+    permission_classes = [IsGroupUser]
