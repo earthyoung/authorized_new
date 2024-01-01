@@ -21,7 +21,7 @@ class Post(TimeStamp):
     content = models.TextField(null=True, blank=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    manager = PostManager()
+    objects = PostManager()
 
 
 class PostImage(models.Model):

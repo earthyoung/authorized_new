@@ -91,7 +91,7 @@ class Group(TimeStamp):
     )
     name = models.CharField(max_length=50)
     members = models.ManyToManyField(User, through="MemberShip")
-    manager = GroupManager()
+    objects = GroupManager()
 
 
 class MemberShip(TimeStamp):
