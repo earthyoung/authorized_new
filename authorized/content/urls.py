@@ -3,9 +3,11 @@ from django.urls import path
 from rest_framework import routers
 
 
-router = routers.SimpleRouter()
-router.register("post/", PostViewSet)
-router.register("post/me/", MyPostViewSet)
-router.register("post/group/", GroupPostViewSet)
-
-urlpatterns = router.urls
+urlpatterns = [
+    path("post/me/", MyPostView.as_view()),
+    path(
+        "post/",
+        PostViewSet.as_view({"get": "list", "post": "create", "patch": "update"}),
+    ),
+    path("post/group/", GroupPostViewSet.as_view({"get": "list"})),
+]
