@@ -25,10 +25,12 @@ class PostViewSet(ModelViewSet):
     def check_permissions(self, request):
         if request.method != "GET":
             self.permission_denied(request)
+        super().check_permissions(request)
 
     def check_object_permissions(self, request, obj):
-        if request.method != "POST":
+        if request.method not in ["POST", "PATCH", "PUT"]:
             self.permission_denied(request)
+        super().check_object_permissions(request, obj)
 
 
 class MyPostViewSet(RetrieveModelMixin, GenericViewSet):

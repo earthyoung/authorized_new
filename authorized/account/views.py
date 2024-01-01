@@ -58,7 +58,9 @@ class HealthView(APIView):
         return JsonResponse({"status": True})
 
 
-class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class UserViewSet(
+    viewsets.GenericViewSet, mixins.RetrieveModelMixin, mixins.DestroyModelMixin
+):
     permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
 
