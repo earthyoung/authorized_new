@@ -75,9 +75,9 @@ class KakaoLoginView(APIView):
             new_access_token, new_refresh_token = self.generate_token(
                 user_data, access_token, refresh_token
             )
-            user_data.pop("access_token")
-            user_data.pop("refresh_token")
-            user_data.pop("expire_at")
+            del user_data["access_token"]
+            del user_data["refresh_token"]
+            del user_data["expire_at"]
         except Exception as e:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,

@@ -22,7 +22,7 @@ class PostSerializer(serializers.ModelSerializer):
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ["name", "content"]
+        fields = ["name", "content", "user_id", "group_id"]
 
 
 class PostDestroySerializer(serializers.ModelSerializer):
