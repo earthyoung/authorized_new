@@ -20,11 +20,12 @@ BASE_URI = os.environ.get("HOST")
 
 
 class PostViewSet(ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.order_by("-created_at")
     permission_classes = [AllowAny, IsWriter]
+    serializer_class = PostSerializer
 
     def check_permissions(self, request):
-        if request.method not in ["GET", "POST"]:
+        if request.method not in ["GET", "POST", "DELETE"]:
             self.permission_denied(request)
         super().check_permissions(request)
 
@@ -32,7 +33,7 @@ class PostViewSet(ModelViewSet):
         if request.method == "GET":
             pass
         else:
-            if request.method in ["POST", "PATCH", "PUT"]:
+            if request.method in ["POST", "PATCH", "PUT", "DELETE"]:
                 super().check_object_permissions(request, obj)
             else:
                 self.permission_denied(request)
@@ -48,9 +49,17 @@ class PostViewSet(ModelViewSet):
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+    def destroy(self, request, *args, **kwargs):
+        print("request destroy called")
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        # return super().destroy(request, *args, **kwargs)
+
 
 class MyPostView(ListAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = PostSerializer
 
     def get_queryset(self):
         request_user = self.request.user
