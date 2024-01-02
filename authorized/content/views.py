@@ -38,7 +38,9 @@ class PostViewSet(ModelViewSet):
                 self.permission_denied(request)
 
     def create(self, request, *args, **kwargs):
-        serializer = PostCreateSerializer(data=request.data)
+        data = request.data
+        data["user_id"] = request.user.id
+        serializer = PostCreateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
