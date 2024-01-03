@@ -25,8 +25,6 @@ class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
 
     def check_permissions(self, request):
-        if request.method not in ["GET", "POST", "DELETE"]:
-            self.permission_denied(request)
         super().check_permissions(request)
 
     def check_object_permissions(self, request, obj):
@@ -50,11 +48,9 @@ class PostViewSet(ModelViewSet):
         )
 
     def destroy(self, request, *args, **kwargs):
-        print("request destroy called")
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-        # return super().destroy(request, *args, **kwargs)
 
 
 class MyPostView(ListAPIView):
