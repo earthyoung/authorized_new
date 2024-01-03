@@ -76,6 +76,15 @@ class UserViewSet(
         return JsonResponse({"status": True, "user": data})
 
 
+class GroupViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+    permission_classes = [IsAuthenticated]
+    queryset = Group.objects.all()
+    serializer_class = GroupSimpleSerializer
+
+    def get_queryset(self):
+        return super().get_queryset().filter(members=self.request.user)
+
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
