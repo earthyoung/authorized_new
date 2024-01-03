@@ -25,8 +25,6 @@ class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
 
     def check_permissions(self, request):
-        if request.method not in ["GET", "POST", "DELETE"]:
-            self.permission_denied(request)
         super().check_permissions(request)
 
     def check_object_permissions(self, request, obj):
