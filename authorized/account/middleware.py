@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class JwtAuthenticateMiddleware:
-    path_starts_with = ["/account/google/", "/account/kakao/"]
+    path_starts_with = ["/account/google/", "/account/kakao/", "/admin"]
     path_exact = ["/account/convert/", "/account/health/"]
     secret = os.environ.get("SECRET_KEY")
 

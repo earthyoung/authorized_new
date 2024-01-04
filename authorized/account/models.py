@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.utils.translation import gettext_lazy as _
 
 
@@ -36,8 +36,10 @@ class UserSignupManager(models.Manager):
 
     def get_by_natural_key(self, username):
         try:
-            user = User.objects.get(username)
-        except (User.DoesNotExist, User.MultipleObjectsReturned):
+            print("get_by_natural_key username", username)
+            user = User.objects.get(username=username)
+        except User.MultipleObjectsReturned:
+            print("get_by_natural_key username multiple keys")
             return None
         return user
 
@@ -78,7 +80,11 @@ class User(AbstractUser, TimeStamp):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
+    objects = UserManager()
     signup_manager = UserSignupManager()
+
+    class Meta:
+        default_manager_name = "objects"
 
 
 class Group(TimeStamp):
