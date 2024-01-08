@@ -20,7 +20,7 @@ class UserSignupManager(models.Manager):
             provider=User.Provider.GOOGLE,
             photo_url=photo_url,
         )
-        self.create_group_with_user(user)
+        self._create_group_with_user(user)
         return user
 
     def create_kakao_user(self, email, user_id, username, photo_url=None):
@@ -31,19 +31,17 @@ class UserSignupManager(models.Manager):
             provider=User.Provider.KAKAO,
             photo_url=photo_url,
         )
-        self.create_group_with_user(user)
+        self._create_group_with_user(user)
         return user
 
     def get_by_natural_key(self, username):
         try:
-            print("get_by_natural_key username", username)
             user = User.objects.get(username=username)
         except User.MultipleObjectsReturned:
-            print("get_by_natural_key username multiple keys")
             return None
         return user
 
-    def create_group_with_user(self, user):
+    def _create_group_with_user(self, user):
         group = Group.objects.create(type=Group.GroupType.SINGLE, name="user")
         membership = MemberShip.objects.create(user=user, group=group)
         return group
