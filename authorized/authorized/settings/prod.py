@@ -37,6 +37,8 @@ AUTH_USER_MODEL = "account.User"
 # Application definition
 
 INSTALLED_APPS = [
+    "channels",
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -130,6 +132,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "authorized.wsgi.application"
+ASGI_APPLICATION = "authorized.asgi.application"
 
 
 # Database
