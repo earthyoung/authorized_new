@@ -37,8 +37,8 @@ AUTH_USER_MODEL = "account.User"
 # Application definition
 
 INSTALLED_APPS = [
-    "channels",
-    "daphne",
+    # "channels",
+    # "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "account",
     "content",
     "log",
-    "chat",
+    # "chat",
     "corsheaders",
 ]
 
@@ -160,19 +160,19 @@ CACHES = {
     }
 }
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [
-                (
-                    os.environ.get("CHANNELS_REDIS_HOST"),
-                    os.environ.get("CHANNELS_REDIS_PORT"),
-                )
-            ]
-        },
-    }
-}
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [
+#                 (
+#                     os.environ.get("CHANNELS_REDIS_HOST"),
+#                     os.environ.get("CHANNELS_REDIS_PORT"),
+#                 )
+#             ]
+#         },
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
