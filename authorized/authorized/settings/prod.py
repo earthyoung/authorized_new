@@ -169,11 +169,6 @@ CHANNEL_LAYERS = {
                     os.environ.get("CHANNELS_REDIS_HOST"),
                     os.environ.get("CHANNELS_REDIS_PORT"),
                 )
-                # {
-                #     "host": os.environ.get("CHANNELS_REDIS_HOST"),
-                #     "port": os.environ.get("CHANNELS_REDIS_PORT"),
-                #     "password": os.environ.get("CHANNELS_REDIS_PASSWORD"),
-                # }
             ]
         },
     }
