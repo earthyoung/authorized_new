@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "account",
     "content",
     "log",
+    "chat",
     "corsheaders",
 ]
 
@@ -155,6 +156,25 @@ CACHES = {
         "LOCATION": os.environ.get("REDIS_HOST"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                (
+                    os.environ.get("CHANNELS_REDIS_HOST"),
+                    os.environ.get("CHANNELS_REDIS_PORT"),
+                )
+                # {
+                #     "host": os.environ.get("CHANNELS_REDIS_HOST"),
+                #     "port": os.environ.get("CHANNELS_REDIS_PORT"),
+                #     "password": os.environ.get("CHANNELS_REDIS_PASSWORD"),
+                # }
+            ]
         },
     }
 }
