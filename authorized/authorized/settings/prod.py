@@ -37,6 +37,8 @@ AUTH_USER_MODEL = "account.User"
 # Application definition
 
 INSTALLED_APPS = [
+    "channels",
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
     "account",
     "content",
     "log",
+    "chat",
     "corsheaders",
 ]
 
@@ -130,6 +133,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "authorized.wsgi.application"
+ASGI_APPLICATION = "authorized.asgi.application"
 
 
 # Database
@@ -152,6 +156,20 @@ CACHES = {
         "LOCATION": os.environ.get("REDIS_HOST"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                (
+                    os.environ.get("CHANNELS_REDIS_HOST"),
+                    os.environ.get("CHANNELS_REDIS_PORT"),
+                )
+            ]
         },
     }
 }
